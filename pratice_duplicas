@@ -1,0 +1,1394 @@
+from common import attribute_constants as attr_const
+from common import constants as common_const
+from enum import Enum
+
+from settings import gbq_settings
+
+
+PLAN_CODE="plan_code"
+PLAN_COMPARE_YEAR="compare_year"
+COMPARE_TYPE = 'compare_type'
+
+##############################  Query Helpers  ################################
+
+# Json Filters
+JSON_MASTER = "JsonMaster"
+JSON_ATTRIBUTES = "JsonAttribute"
+JSON_NAME = "Name"
+JSON_PREFIX = "Prefix"
+
+JSON_PREFIX_VALUE_LEVEL = "Levels"
+JSON_FIXED_ATTR = "Fixed_Attr"
+
+FILTERS = "filters"
+VALUE = "value"
+PREFIX = "prefix"
+JSON_VALUE = "Value"
+OPERATOR = "operator"
+# Attribute Key Filter (Json Input)
+ATTRIBUTE_NAME = "Attribute_Name"
+ATTRIBUTE_VALUE = "Attribute_Value"
+
+# Calculation Operator
+SUM = "sum"
+MAX = "max"
+
+LABEL = 'label'
+PENPERCENTAGE = 'Pen%'
+PENETRATION_COLUMNS='penetration'
+PERCENTAGE="percentage"
+ROUNDOFFTOTWODECIMALS='roundOfftoTwoDecimals'
+IS_REQUIRED = 'is_required'
+ROUNDOFF = "roundOff"
+
+IS_DISABLED = "is_disabled"
+MSG_SUCCESS = "success"
+
+# Joining Operator
+LEFT = "left"
+INNER = 'inner'
+
+# Data Types
+STR_TYPE = 'str'
+FLOAT_TYPE = 'float'
+
+# where clause
+WHERE_CLAUSE = " {whereClause}"
+RECORDS = 'records'
+
+PLAN_STEP = "steps"
+
+######################### Drop Setup ################################
+PLAN_BUDGET_DROP_ID='plan_budget_drop_id'
+
+PLAN_BUDGET_MASTER_DROP='assort_smart.plan_budget_master_drop'
+
+DROP_DATA_MSG = 'Drop Data Uploaded Successfully'
+
+CARRYOVER = 'carryover'
+CARRYOVER_FLAG = 'carryover_flag'
+DROPS_1 ='drops_1'
+RECEIPT_RETAIL_AGG = 'receipt_retail_agg'
+DROP_RECEIPTS_AGG = 'drop_receipts_agg'
+RECEIPT_RETAIL_LY = 'receipt_retail_ly'
+DROP_PEN_LY = 'drop_penetration_ly'
+DROP_PEN_TY = 'drop_penetration_ty'
+TOTAL_BUDGET_TY = 'total_budget_ty'
+TOTAL_BUDGET_LY = 'total_budget_ly'
+BUDGET_CO_TY ='budget_ty_Carryover'
+BUDGET_NEW_TY = 'budget_ty_New'
+UNSCL_BUDGET_NEW_TY ='unscaled_budget_ty_New'
+DROP_BUDGET_TY = 'drop_budget_ty'
+DROP_BUDGET_LY = 'drop_budget_ly'
+DROP_BUDGET_NEW_TY = 'drop_budget_ty_New'
+LEVELS = 'levels'
+PENETRATION_LY = 'penetration_ly'
+PENETRATION_TY = 'penetration_ty'
+MARGIN_LY = 'margin_ly'
+REVENUE_LY = 'revenue_ly'
+BUDGET_LY = 'budget_ly'
+BUDGET_TY = 'budget_ty'
+RCPT_UNITS_TY = 'rcpt_units_ty'
+RCPT_UNITS_LY = 'rcpt_units_ly'
+VARIABLE = "variable"
+DROP = 'drop'
+DROPS = 'drops'
+FLOW = 'flow'
+SUB_CHANNEL = 'sub_channel'
+DROP_END_DATE='drop_end_date'
+DROP_START_DATE='drop_start_date'
+FLOW_START_DATE='flow_start_date'
+TYPE = 'type'
+STRUCT_FORMAT='struct_format'
+DATE = 'date'
+TOTAL = 'total'
+OPERATOR = 'operator'
+
+###### Master data plan ######
+
+RANK = 'rank'
+CROSS = 'cross'
+DIFF = 'diff'
+CONTRIBUTION = 'contribution'
+CHOICE_NAME = 'choice_name'
+FISCALWEEK = 'fiscal_week'
+ARTICLE = 'article'
+TEMP = 'temp'
+COLOR_CODE = 'color_code'
+CLUSTER_COMBINATION = 'cluster_contribution'
+RECEIPT_QTY = 'receipt_qty'
+FORECAST_QTY = 'forecast_qty'
+ASSORT_MASTER_PLAN = 'assort_smart.assort_master_plan'
+
+# data base 
+BIGQUERY='bigquery'
+POSTGRES='postgres'
+IS_NULL='null'
+VALUE = "value"
+MASTER_ATTRIBUTE_VALUE = "master_attribute_value"
+
+
+PLAN_CARRYOVER_STYLE_ID='plan_carryover_style_id'
+
+PLAN_CODE="plan_code"
+
+# Plan_Budget DB Operation Keys
+PLAN_BUDGET_FISCAL_CHANNEL = ["channel","sub_channel"]
+PLAN_BUDGET_DB_JOIN_KEYS_LIST = PLAN_BUDGET_FISCAL_CHANNEL + ['revenue_ty', 'units_ty', 'margin_ty', 'retail_receipt_ty',
+'receipt_units_ty', 'revenue_ly', 'units_ly', 'margin_ly', 'retail_receipt_ly', 'receipt_units_ly', 'sales_cost_ty']
+
+
+# db schema
+ASSORT = 'assort'
+ASSORT_SMART = 'assort_smart'
+
+
+# NOTE: will be eliminated in the future
+# client
+VB = 'vb'
+
+
+# SP details
+SP_PLAN_CARRYOVER_STYLES_COLOR_LIST = "assort_smart.plan_carryover_styles_color_grouping_list"
+SP_PLAN_CARRYOVER_STYLES_LIST = "assort_smart.plan_carryover_styles_list"
+SP_PLAN_CARRYOVER_STYLES_UPDATE = "assort_smart.plan_carryover_styles_update"
+SP_GET_FISCAL_YEAR_MONTH='assort_smart.get_fiscal_year_month'
+SP_GET_PLAN_CODE = "assort_smart.get_plan_code"
+SP_PLAN_BUDGET_MASTER_LIST='assort_smart.plan_budget_master_list'
+SP_PLAN_BUDGET_MASTER_GROUPING_LIST='assort_smart.plan_budget_master_grouping_list'
+SP_PLAN_FINAL_CLUSTER_STORE_LIST='assort_smart.plan_final_cluster_store_list'
+SP_PLAN_L3_OPT_MASTER_LIST='plan_l3_opt_master_list'
+SP_PLAN_L3_OPT_MASTER_GROUPING_LIST = 'plan_l3_opt_master_grouping_list'
+SP_PLAN_CLUSTER_OPT_MASTER_LIST = 'get_plan_cluster_opt_master_list'
+SP_PLAN_UPDATE_STEP = "{schema_name}.update_plan_step"
+SP_PLAN_L3_OPT_MASTER_UPDATE = 'plan_l3_opt_master_update'
+SP_PLAN_CLUSTER_OPT_ATTRIBUTE_UPDATE='plan_cluster_opt_attribute_update'
+SP_PLAN_WEDGE_OPT_CONSTRAINT_CLUSER_CODE_LIST = 'plan_wedge_opt_constraint_cluster_code_list'
+SP_PLAN_WEDGE_OPT_CONSTRAINT_L2_NAME_LIST='plan_wedge_opt_constraint_l2_name_list'
+SP_PLAN_WEDGE_OPT_CONSTRAINT_UPDATE = 'update_plan_wedge_opt_constraint'
+SP_WEDGE_ATTR = 'get_wedge_attributes'
+SP_WEDGE_DATA = 'wedge_data_list'
+SP_GET_PLAN_PRODUCT_ATTRIBUTE_NAME='get_plan_product_attribute_name'
+SP_UPDATE_WEDGE_DATA = 'update_plan_wedge_opt_master'
+SP_WDG_FILE_UPLOAD = 'wdg_file_update_wedge_data'
+DEPTH_CHOICE_WITH_RECALCULATION = 'update_depth_choice_with_recalculation'
+SP_DEPTH_CHOICE_WITH_RECALCULATION_UPDATE = 'update_depth_choice_with_recalculation'
+SP_DEPTH_CHOICE_WITHOUT_RECALCULATION_UPDATE = 'update_depth_choice_without_recalculation'
+SP_PLAN_OPT_MASTER_UPDATE = 'plan_aps_st_opt_master_update'
+SP_PLAN_APS_ST_L3_UPDATE = 'plan_abs_st_l3_update'
+
+
+
+
+MONTHS_YEARS_CHECK= 'months_years_check'
+NO_TY_DATA = 'No TY data for this combination'
+
+# Joining Operator
+LEFT = "left"
+RECORDS = 'records'
+
+# fiscal year details
+FISCAL_YEAR_SHORT = "fy"
+FISCAL_MONTH_SHORT = "fm"
+FISCAL_WEEK = "fw"
+START_DATE="start_date"
+END_DATE="end_date"
+STORE_TYPE='store_type'
+FISCAL_YEAR_X="fiscal_year_x"
+PLAN_BUDGET_COLUMNS_NAME = ['plan_code','levels','attribute_value']
+
+PLAN_BUDGET_ATTRIBUTE_LIST = ['revenue_ty', 'units_ty', 'margin_ty', 'retail_receipt_ty', 'receipt_units_ty', 'revenue_ly', 'units_ly',
+'margin_ly', 'retail_receipt_ly', 'receipt_units_ly', 'sales_cost_ty']
+
+ASSORT_PLAN_BUDGET_MASTER_TABLE='assort_smart.plan_budget_master'
+
+
+FISCAL_MONTH_MAPPING_WITH_NAME='fiscal_month_mapping_with_name'
+PLAN_BUDGET_FISCAL_MONTH = "Fiscal_Month"
+
+
+CHANNEL_COL = 'CHANNEL'
+SUB_CHANNEL='sub_channel'
+
+PLAN_STEP_2_1 = 2.1
+PLAN_STEP_2_2 = 2.2
+PLAN_STEP_2_3 = 2.3
+PLAN_STEP_2_4 = 2.4
+PLAN_STEP_3 = 3.0
+PLAN_STEP_6 = 6.0
+PLAN_STEP_8 = 8.0
+PLAN_STEP_7 = 7.0
+PLAN_STEP_5 = 5.0
+PLAN_STEP_4 = 4.0
+
+DESTINATION_PLAN_CODE = 'destination_plan_code'
+
+
+
+# Data formate 
+DATE_FORMAT='%Y-%m-%d'
+
+
+PLAN_BUDGET_ID = "plan_budget_id"
+PLAN_BUDGET_FISCAL_YEAR = "Fiscal_Year"
+PLAN_BUDGET_FISCAL_MONTH = "Fiscal_Month"
+STORE_CODE = 'store_code'
+TOTAL = 'Total'
+LEVELS = 'levels'
+IS_GROUPING='is_grouping'
+
+SUB_CHANNEL_LABEL='Sub channel'
+STR_TYPE = 'str'
+VIEW_TRENDS='view_trends'
+VIEWTRENDS='View Trends'
+CHART_ICON='chart_icon'
+LINE='line'
+TITLE='title'
+BUDGET_DATA='Budget data'
+REVIEW_TARGET_DATA = 'Review Target data'
+COLUMNS = 'columns'
+STORE_TYPE_LIST = ['Wholesale']
+NAME = "name"
+COMPARE_TYPE="compare_type"
+PLAN_L3_IS_ACTIVE='is_active'
+TOTAL_SUB_HEADERS_LIST=['total_ly','total_ty']
+COMPARE_TYPE_lIST=["compare_type"]
+DATE_LIST = ['start_date','end_date']
+PLAN_CODE_LIST=["plan_code"]
+
+
+STYLE_COLOR='style_color'
+SP_PLAN_FINAL_CLUSTER_STORE_LIST='assort.plan_final_cluster_store_list'
+
+CARRYOVER_SKU_STORE_LEVEL_TABLE = 'results_combined_all_elastic_2_msrp_split_part_filtered_v2'
+CARRYOVER_L3_STORE_LEVEL_TABLE = 'final_simulations_merch_pyramid_all_channel_010223'
+FORECAST_DATASET_NAME = 'VB_Forecast'
+PLAN_CODE = 'plan_code'
+STORE_CODE = 'store_code'
+STORE_COUNT = 'store_cnt'
+
+L0_NAME = attr_const.PRODUCT_HIERARCHY_L0
+L1_NAME = attr_const.PRODUCT_HIERARCHY_L1
+L2_NAME = attr_const.PRODUCT_HIERARCHY_L2
+L3_NAME = attr_const.PRODUCT_HIERARCHY_L3
+SEASON = 'season'
+TIME_PERIOD = 'time_period'
+COMPARE_YEAR = 'compare_year'
+LEVELS = 'levels'
+
+PLAN_CARRYOVER_STYLES = 'assort_smart.plan_carryover_styles'
+
+
+RETAIL_RECEIPTS = 'retail_receipts_ty'
+BUY_UNITS_TY = 'buy_units_ty'
+SALES = 'sales_ty'
+SALES_UNITS = 'sales_units_ty'
+REG_WEEKS_TY = 'reg_weeks_ty'
+GROSS_MARGIN = 'gross_margin_ty'
+
+
+STYLE_ID = 'style_id'
+STYLE_COLOR_ID = 'style_color_id'
+CHANNEL_COL = 'CHANNEL'
+
+IS_ACTIVE = 'is_active'
+
+SALES_LY = 'sales_ly'
+SALES_UNITS_LY = 'sales_units_ly'
+GROSS_MARGIN_LY = 'gross_margin_ly'
+RECEIPTS_QTY_LY = 'receipts_qty_ly'
+STORE_COUNT_LY = 'store_count_ly'
+GROSS_MARGIN_PERC_LY = 'gross_margin_perc_ly'
+ST_LY = 'st_ly'
+APS_LY = 'aps_ly'
+APS_TY = 'aps_ty'
+REG_WEEKS_LY = 'reg_weeks_ly'
+
+ST = 'st_ty'
+ST_WEDGE = 'st'
+GROSS_MARGIN_PERC = 'gross_margin_perc_ty'
+
+FORECASTED_ST = 0.6
+CARRYOVER_LEVELS = [L0_NAME, L1_NAME, L2_NAME, L3_NAME, STYLE_COLOR_ID, STYLE_ID, CHANNEL_COL.lower(), SUB_CHANNEL]
+
+PLAN_CARRYOVER_STYLE_ID='plan_carryover_style_id'
+
+# SP details
+SP_PLAN_CARRYOVER_STYLES_LIST = "assort_smart.plan_carryover_styles_list"
+SP_PLAN_CARRYOVER_STYLES_UPDATE = "assort_smart.plan_carryover_styles_update"
+
+CLUSTER_CODE = 'cluster_code'
+CLUSTER_DISPLAY_NAME = 'cluster_display_name'
+DROP_END_DATE='drop_end_date'
+DROP_START_DATE='drop_start_date'
+DROP_VALUE='drop_value'
+STRUCT_FORMAT='struct_format'
+
+DEFAULT_BUDGET_LEVEL = ['l2_name', 'l3_name']
+
+LEFT = "left"
+OUTER = 'outer'
+INNER = 'inner'
+FIRST = 'first'
+RIGHT='right'
+
+FLAG = 'flag'
+
+SUB_CHANNEL='sub_channel'
+
+KEY = 'key'
+UPPER_LEVEL = 'upper_level'
+LOWER_LEVEL = 'lower_level'
+
+PLAN_CLUSTER = 'Plan Cluster'
+
+LEVEL_GROUP = [L0_NAME, L1_NAME, L2_NAME, L3_NAME]
+
+INFO = 'info'
+L2_DROP_BUDGET_TY = 'l2_drop_budget_ty'
+L2_DROP_BUDGET_LY = 'l2_drop_budget_ly'
+L2_REVENUE_TY = 'l2_revenue_ty'
+L2_REVENUE_LY = 'l2_revenue_ly'
+L2_MARGIN_TY = 'l2_margin_ty'
+L2_MARGIN_LY = 'l2_margin_ly'
+
+LEVEL_KEY = 'level_key'
+TOTAL_QUANTITY = 'total_quantity'
+TOTAL_PRICE = 'total_price'
+TOTAL_COST = 'total_cost'
+FISCAL_YEAR = 'fiscal_year'
+FISCAL_MONTH = 'fiscal_month'
+DISCOUNT_CONSTRAINT_MIN = 'discount_constraint_min'
+DISCOUNT_CONSTRAINT_MAX = 'discount_constraint_max'
+LEVEL = 'level'
+
+PERCENT_OFF = 'percent_off'
+SCENARIO_VAL = 'scenario_val'
+MSRP = 'msrp_ty'
+
+TOTAL_RECEIPTS_COST_TY = 'total_receipts_cost_ty'
+RECEIPTS_QUANTITY_TY= 'receipts_quantity_ty'
+RECEIPTS_QUANTITY_LY= 'receipts_quantity_ly'
+SELL_THROUGH = 'sell_through'
+
+AIR_TY = 'air_ty'
+AIR_LY = 'air_ly'
+AUR_TY = 'aur_ty'
+AUR_LY = 'aur_ly'
+AUC_TY = 'auc_ty'
+AUC_LY = 'auc_ly'
+AUR = 'aur'
+AUC = 'auc'
+
+
+OPTI_DIFF_PERC_CUTOFF = 0.2
+RECEIPTS_TO_QTY_RATIO = '5/3'
+
+PREDICTED_MARGIN = 'predicted_margin'
+PREDICTED_QUANTITY = 'predicted_quantity'
+PREDICTED_REVENUE = 'predicted_revenue'
+
+REVENUE_MIN = 'revenue_min'
+REVENUE_MAX = 'revenue_max'
+UNITS_MIN = 'units_min'
+UNITS_MAX = 'units_max'
+
+OPT_DISCOUNT_PERC_CHANGE = 0.05
+
+ATTRIBUTES_KEY = 'attributes_key'
+BUDGET_OPTI_CHANGE_CUTOFF = 'budget_opti_change_cutoff'
+BUDGET_COLUMN = 'budget_column'
+DEFAULT_BUDGET_COLUMN = 'price'
+
+DEFAULT_OPTI_FLAG = 'style-color'
+CLUSTER_PLAN_CODE = 'cluster_plan_code'
+
+BUDGET_OPTI_SUCCESS_MESSAGE = "Assort 2-1 optimization was successful."
+
+PLAN_CLU_OPT_ID='plan_clu_opt_id'
+DISPLAY_CLUSTER_NAME = 'cluster_display_name'
+
+
+# Calculation Operator
+ADD = "add"
+NUNIQUE = 'nunique'
+MEAN = 'mean'
+
+
+CLUSTER_LEVEL_PLAN = 'cluster_level_plan'
+DATA = 'data'
+LEVEL_ATTRIBUTES = "level_attributes"
+CLUSTERSPLIT = 'clusterSplit'
+PIE_CHART = 'pie'
+ATTRIBUTE_SPLIT = 'attributeSplit'
+CLUSTERSPLIT_CHART = 'Cluster Split Donut Chart'
+ATTRIBUTESPLIT_CHART = 'Attribute Split Donut Chart'
+
+PLAN_BUD_OPT_ID = 'plan_bud_opt_id'
+L3_OPTIMIZATION = 'L3 optimization data'
+COLUMN = 'column'
+ORDER_DISPLAY = 'order_of_display'
+LY = 'ly'
+TY = 'ty'
+
+UPDATE_DROP_FLOW_DATA_SP = "{schema_name}.update_drop_flow_data"
+DROP_FLOW_DATA = "drop_flow_data"
+# Data Types
+INT_TYPE = 'int'
+LIST_TYPE = 'list'
+
+JSON_FALSE = 'false'
+ORDER_OF_DISPLAY = 'order_of_display'
+
+
+JSON_ONE_LAYER = """attribute_value->>'{key_name}' as attribute_value"""
+JSON_TWO_LAYER_LIST_TYPE = """unnest(replace(replace(attribute_value->'{first_key_name}'->>'{second_key_name}', '[', '{open_brace}' ), ']', '{close_brace}' )::text[] )"""
+JSON_TWO_LAYER_STR_TYPE = """attribute_value->'{first_key_name}'->>'{second_key_name}' as attribute_value"""
+
+JSON_ONE_LAYER_LIST_TYPE = """unnest(replace(replace(attribute_value->>'{first_key_name}', '[', '{open_brace}' ), ']', '{close_brace}' )::text[] )"""
+JSON_ONE_LAYER_STR_TYPE = """attribute_value->>'{first_key_name}' as attribute_value"""
+
+
+IS_UPDATE_PLAN_STEP='is_update_plan_step'
+L3_OPTIMIZATION_DATA='l3_optimization_data'
+
+
+RECEIPTS_CARRYOVER = 'receipts_carryover'
+RECEIPTS_CARRYOVER_LY = 'receipts_carryover_ly'
+TOTAL_RECEIPTS_PRICE_TY = 'total_receipts_price_ty'
+TOTAL_RECEIPTS_COST_LY = 'total_receipts_cost_ly'
+
+CLUSTER_PLAN_DATA='cluster_plan_data'
+
+ASSORT_DROP_FEATURE = 'assort_drop_feature'
+
+IS_HIDDEN = "is_hidden"
+IS_FROZEN = "is_frozen"
+WIDTH = "width"
+FOOTER='footer'
+FORMATTER = 'formatter'
+IS_ROW_SPAN = 'is_row_span'
+IS_SEARCHABLE = 'is_searchable'
+IS_EDITABLE = 'is_editable'
+SUB_HEADERS = 'sub_headers'
+UPPER = 'upper'
+COLUMN_NAME = "column_name"
+
+DROP_DIMENSION = "assort_drop_feature"
+UPPER_HEADER = ["Pen%", "Receipt$"]
+BUDGET = 'budget'
+BUDGET_DROP_COL_NAME = "assort_review_budget_drop"
+FLOW_COL_STRUCTURE = "flow{index}_receipt"
+DROP_RECEIPT = 'drop_receipt'
+TOTAL_RECEIPT = 'total_receipt'
+TAG = 'tag'
+DOLLAR_SYMBOL = '$'
+DOLLAR_TYPE = "dollar"
+LABEL_POST_SYMBOL = 'label_post_symbol'
+LABEL_PRE_SYMBOL = 'label_pre_symbol'
+
+
+#APS_ST exclusive
+APS_RECEIPT = 'aps_receipt'
+REG_WEEKS = 'reg_weeks'
+MASTER_DATE = 'master.date'
+STRING = 'string'
+STYLE_ID_LIST = 'style_id_list'
+WEEKLY = 'weekly'
+INVENTORY_FREQUENCY = 'inventory_frequency'
+STORE_CNT = 'store_cnt'
+BOP_OH = 'bop_oh'
+RCVD_QTY ='rcvd_qty'
+STORE_ARTICLE_KEY='store_article_key'
+STORE_ARTICLE_DATE_KEY='store_article_date_key'
+QTY='qty'
+AVG_WK_COUNT_LY='avg_wk_cnt_ly'
+AVG_WK_COUNT_TY='avg_wk_cnt_ty'
+PEN_LY='pen_ly'
+PEN_TY='pen_ty'
+CAGR='cagr'
+CAGR_L2='cagr_l2'
+TOTAL_QTY='total_qty'
+CC_INTERMEDIATE='cc_intermediate'
+DEPTH_INTERMEDIATE='depth_intermediate'
+REVENUE_TY = 'revenue_ty'
+AVG_WK_COUNT_L3_TY = 'avg_wk_cnt_l3_ty'
+AVG_WK_COUNT_L2_TY = 'avg_wk_cnt_l2_ty'
+ST_TY = 'st_ty'
+ST_L3_TY = 'st_l3_ty'
+ST_L2_TY = 'st_l2_ty'
+BUDGET_THRESHOLD='budget_threshold'
+CLUSTER_THRESHOLD='cluster_cnt_threshold'
+PEN_THRESHOLD='penetration_threshold'
+CLUSTER_RATIO = 'cluster_ratio'
+BUDGET_RATIO = 'budget_ratio'
+APS_L2_TY='aps_l2_ty'
+APS_L2_CLUST_TY='aps_l2_cluster_ty'
+APS_CLUSTER_RATIO='aps_cluster_ratio'
+APS_TY_NEW='aps_ty_new'
+MINIMUM_SIZE='minimum_size'
+MAXIMUM_VALUE='maximum_value'
+MINIMUM_VALUE='minimum_value'
+MAX_VALUE_ECOMM=18000
+MAX_VALUE_BM=500
+MAX_VALUE_CONSTANT=999999  #high number to mimic infinity
+MIN_VALUE_CONSTANT=1
+MIN_SIZE_CONSTANT=0
+INCREMENT_VALUE=1
+APS_ST_SUCCESS='APS ST ran successfully'
+REG_WEEKS='reg_weeks'
+SPECIAL_CLASSIFICATION='special_classification'
+SIZE_CURVE_FLAG='run_size_curve_flag'
+ECOMM = 'ecomm'
+MIN_VALUE='min_value'
+MAX_VALUE='max_value'
+INCREMENT='increment'
+MIN_SIZE='min_size'
+ROUNDOFF='roundOff'
+MOQ='moq'
+DEFAULT_CC_CONSTRAINT='default_cc_constraint'
+DEFAULT_MOQ_CONSTRAINT='default_moq_constraint'
+CC_THRESHOLD='cc_threshold'
+MAX_CC='max_cc'
+ALL_DOOR_CC='all_door_cc'
+ALL_DOOR_CC_ENABLED='all_door_cc_enabled'
+PLAN_L3_APS='plan_l3_aps'
+PLAN_CLUSTER_APS='plan_cluster_aps'
+PLAN_WEDGE_OPT_CONSTRAINT='plan_wedge_opt_constraint'
+DEPTH_CHOICE_SERVICE_CLASS = 'DepthChoice'
+APS_ST_REGWEEKS_SERVICE_CLASS = 'ApsStRegWeeks'
+RECEIPT_INDEX = 'receipt_index'
+MIN_MAX_CONSTRAINTS = 'min_max_constraints'
+LEVEL_FLOW = 'level_flow'
+LEVEL_CH_SC = 'level_ch_sc'
+
+
+#depth cc
+RECALCULATE = "recalculate"
+MAX_THRESHOLD = 'max_threshold'
+MIN_THRESHOLD = 'min_threshold'
+SIZE_CURVE_FLAG = 'run_size_curve_flag'
+QTY_TY = 'qty_ty'
+PEN_CLUSTER_LY = 'pen_clust_ly'
+PEN_CLUSTER_TY = 'pen_clust_ty'
+CC_LY = 'choice_ly'
+CC_TY = 'choice_ty'
+CC_TY_NEW = 'cc_ty_new'
+CC_TY_NEW_MAX_CC = 'cc_ty_new_max_cc'
+CC_TY_NEW_CC_THRESH = 'cc_ty_new_cc_thresh'
+TOTAL_CC_LY = 'total_choice_count_ly'
+TOTAL_CC_TY = 'total_choice_count_ty'
+DEPTH_TY_NEW = 'depth_ty_new'
+RATIO = 'ratio'
+CHOICE_MIN = 'choice_minimum'
+CHOICE_LIMIT ='choice_limit'
+CHOICE_MIN_VALUE = 0
+ALL_DOOR_CHOICE = 'all_door_choice'
+CLUSTER_UNITS_TY = 'cluster_units_ty'
+CLUSTER_UNITS_LY = 'cluster_units_ly'
+NEW_STYLE_DEPTH_TY = 'new_style_depth_ty'
+CO_STYLE_DEPTH_TY = 'co_style_depth_ty'
+NEW_STYLE_COUNT = 'new_style_count'
+CO_STYLE_COUNT = 'co_style_count'
+CO_NEW_STYLE_COUNT = 'co_new_style_count'
+CO_NEW_CLUSTER_UNITS_TY = 'co_new_cluster_units_ty'
+CO_NEW_STYLE_DEPTH_TY = 'co_new_style_depth_ty'
+MAX_NEW = 'max_new'
+PLAN_CLUSTER_DEPTH_CHOICE = 'plan_cluster_depth_choice'
+DEPTH_CC_SUCCESS = 'Depth CC ran successfully'
+APS_CLUSTER_LY = 'aps_clust_ly'
+APS_CLUSTER_TY = 'aps_clust_ty'
+ST_CLUSTER_LY = 'st_clust_ly'
+ST_CLUSTER_TY = 'st_clust_ty'
+AVG_APS = 'avg_aps'
+BUDGET_CORE_CC = 'budget_core_cc'
+BUDGET_ALL_DOOR_CC = 'budget_all_door_cc'
+BUDGET_SHORTAGE = 'budget_shortage'
+BUDGET_EXCESS = 'budget_excess'
+TOT_BUDGET_EXCESS = 'tot_budget_excess'
+EXCESS_RATIO = 'excess_ratio'
+TOT_BUDGET_SHORT = 'tot_budget_short'
+BUDGET_UPDATED = 'budget_updated'
+TY_CC_UPDATED = 'ty_cc_updated'
+DEPTH_TY = 'depth_ty'
+DEPTH_LY = 'depth_ly'
+CHOICE_CAPPED_MSG = "CC is capped to max constraint and recalculated Depth"
+UPDATE_MSG = "updated successfully"
+CHANGED_DEPTH_TY = 'changed_depth_ty'
+CHANGED_CHOICE_TY = 'changed_choice_ty'
+CHANGED_CC_DEPTH = 'changed_cc_depth'
+CO_DEPTH_TY = 'co_depth_ty'
+CO_CHOICE_TY = 'co_choice_ty'
+CO_QTY_TY = 'co_qty_ty'
+CO_DEPTH_LY = 'co_depth_ly'
+CO_CHOICE_LY = 'co_choice_ly'
+NEW_DEPTH_TY = 'new_depth_ty'
+NEW_CHOICE_TY = 'new_choice_ty'
+NEW_QTY_TY = 'new_qty_ty'
+NEW_DEPTH_LY = 'new_depth_ly'
+NEW_CHOICE_LY = 'new_choice_ly'
+CO_STORE_CNT = 'co_store_cnt'
+IS_DATA_CHANGED = 'is_data_changed'
+CARRYOVER_TAG = 'Carryover'
+TOTAL_TAG = 'Total'
+NEW_TAG = 'New'
+CC_FROM_THRESHOLD = 'cc_from_threshold'
+CC_CHANGED = 'cc_changed'
+DEPTH_CHANGED = 'depth_changed'
+TOTAL_UNITS = 'total_units'
+TOTAL_DEPTH_TY = 'total_depth_ty'
+
+
+LEVEL_DROP_GROUP = LEVEL_GROUP + [DROP]
+LEVEL_CHANNEL_DROP = LEVEL_DROP_GROUP + [CHANNEL_COL.lower(), SUB_CHANNEL]
+L0_L1_L2_L3_SUBCHANNEL_CLUSTER_DROP_LIST = [L0_NAME, L1_NAME, L2_NAME, L3_NAME, CHANNEL_COL.lower(),SUB_CHANNEL, CLUSTER_CODE, DROP]
+
+STATUS = "status"
+## sp got get plan carryover percentage view
+SP_PLAN_CARRYOVER_PERC_VIEW = "assort_smart.plan_carryover_perc_view"
+
+#Wedge constants
+
+TARGET_URL = 'target_url'
+PAYLOAD = 'payload'
+Q_NAME = 'queue_name'
+TASK_ID = 'task_id'
+WEDGE_SUCCESS = 'Wedge created successfully'
+WEDGE_OPT_SUCCESS = 'Wedge optimization ran successfully'
+APS = 'aps'
+UUID = "UUID"
+RANGE = 'range'
+OUTPUT_FILE = 'Output_file'
+SEASON_START_DATE = 'season_start_date'
+SEASON_END_DATE = 'season_end_date'
+BELOW_MOQ_DEFAULT_FLAG = 'delete'
+L0_L1_L2_L3_SUBCHANNEL_LIST = [L0_NAME, L1_NAME, L2_NAME, L3_NAME,CHANNEL_COL.lower() ,SUB_CHANNEL]
+L0_L1_L2_L3_SUBCHANNEL_CLUSTER_LIST = [L0_NAME, L1_NAME, L2_NAME, L3_NAME, CHANNEL_COL.lower(),SUB_CHANNEL, CLUSTER_CODE]
+L0_L1_L2_L3_SUBCHANNEL_DROP_LIST = [L0_NAME, L1_NAME, L2_NAME, L3_NAME, CHANNEL_COL.lower(),SUB_CHANNEL, DROP]
+L0_L1_L2_L3_DROP_LIST = [L0_NAME, L1_NAME, L2_NAME, L3_NAME, CHANNEL_COL.lower(), DROP]
+CHOICE_NAME = 'choice_name'
+TOTAL_QTY_CHOICE = 'total_qty_choice'
+ORIGINAL_TOTAL_QTY = 'original_total_qty'
+CLUSTER_QTY_UPDATED = 'cluster_qty_updated'
+PARENT_WEDGE_ID = 'parent_wedge_id'
+PLAN_WEDGE_OPT_ID = 'plan_wedge_opt_id'
+LEVEL_CHANNEL_CHOICE_CLUSTER_DROP = LEVEL_DROP_GROUP + [CHANNEL_COL.lower(), SUB_CHANNEL, CHOICE_NAME, CLUSTER_CODE]
+FORECASTED_QTY = 'forecasted_qty'
+STORE_ELIGIBILITY_GROUP = 'store_eligibility_group'
+SEASON_NAME = 'season_name'
+SEASON_CODE = 'season_code'
+SEASON_MASTER_ID = 'season_master_id'
+DELETE_CHOICE = 'delete_choice'
+TOTAL_DOOR_COUNT = "total_door_count"
+RANK = 'rank'
+INDEX = 'index'
+PLAN_WEDGE_OPT_ATTRIBUTE = 'assort_smart.plan_wedge_opt_attribute'
+PLAN_WEDGE_OPT_MASTER = 'assort_smart.plan_wedge_opt_master'
+DATE_FROM_SEARCH = "'(.+?)' "
+DATE_TO_SEARCH = "and '(.+?)'"
+YEAR_MONTH_DAY = '%Y-%m-%d'
+YEAR = '%Y'
+DAY = '%j'
+H1 = 'H1'
+H2 = 'H2'
+EQUAL_OP = "="
+COLOR_DESCRIPTION = 'color_description'
+IA_PLACEHOLDER_STYLE_ID = 'ia_placeholder_style_id'
+PLACEHOLDER_STYLE_OID = 'placeholder_style_oid'
+DB_IA_PLACEHOLDER_CHOICE_ID = 'ia_placeholder_choice_id'
+PLACEHOLDER_NAME = 'placeholder_name'
+NEW_VS_CARRYOVER='new_vs_carryover'
+COLORWAY_ID = 'colorway_id'
+COLORWAY_SEASON_ID = 'colorway_season_id'
+PRODUCT_SEASON_ID = 'product_season_id'
+PRODUCT_ID = 'product_id'
+MARKETING_CHOICE_COUNT  = "marketing_choice_count"
+PLAN_UPDATED_AT = "updated_at"
+LOCK_CC     = 'lock_cc'
+BIG_TALL_FLAG = 'big_tall_size'
+WEDGE_DF_FINAL = 'wedge_df_final'
+WEDGE_GRP_DF_FINAL = 'wedge_grp_df_final'
+WEDGE_CLUSTER_DF_FINAL = 'wedge_cluster_df_final'
+IDEAL_DF = 'ideal_df'
+FINAL_DATA_OPTMZ = 'final_data_optmz'
+DATA_2 = 'data_2'
+GCS_DATA_LINK = "GCS_data_link"
+CALL_BACK_URL = "Call_back_URL"
+WEDGE_ID = 'wedge_id'
+ATTR_C = 'attr_c'
+L0_L1_L2_L3 = 'l0_l1_l2_l3'
+L0_L1_L2 = 'l0_l1_l2'
+LESS_THAN_EQUALS_SYMBOL = '≤'
+LESS_THAN_EQUALS = 'lte_symbol'
+LESS_THAN_SYMBOL = '<'
+LESS_THAN = 'lt_symbol'
+GREATER_THAN_EQUALS_SYMBOL = '≥'
+GREATER_THAN_EQUALS = 'gte_symbol'
+GREATER_THAN_SYMBOL = '>'
+GREATER_THAN = 'gt_symbol'
+EQUALS = 'e_symbol'
+DOLLAR = 'dollar'
+SINGLE_SPACE_SYMBOL = ' '
+SINGLE_SPACE = 'single_space'
+DOT_SYMBOL = '.'
+DOT = 'dot'
+ORIGINAL = 'original'
+ATTR_CLUSTER = 'attribute_cluster'
+STYLES = 'Styles'
+NEW_STYLE = 'New_Style'
+OLD_STYLE = 'Old_Style'
+TOTAL_QTY_L3 = 'total_qty_l3'
+MAX_TOTAL_QTY = 'max_total_qty'
+TOTAL_QTY_L3_NEW = 'total_qty_l3_new'
+QTY_NEW = 'qty_new'
+SCALE_RATIO = 'scale_ratio'
+TOTAL_QTY_NEW = 'total_qty_new'
+MIN_NEW = 'min_new'
+CC_NEW = 'cc_new'
+LIMIT = 'limit'
+TOTAL_LIMIT = 'total_limit'
+DELTA = 'delta'
+DIFF = "diff"
+CHECK = 'check'
+OLD_STYLE_CHECK = 'old_style_check'
+CLUSTER_ATTR_FINAL = 'cluster_attr_final'
+STORE_CNT_DF = 'store_cnt_df'
+FINAL_ATTR_LIST = 'final_attr_list'
+ALL_ATTR_DF = 'all_attr_df'
+TOTAL_PER_FLOW = 'total_percentage_flow'
+DROP_SPLIT = 'drop_split'
+CHOICE_FLOW = 'choice_flow'
+PERCENTAGE_DROP = 'perc'
+PERC_SPLIT_FLOW = "perc|split|_flow"
+AIR = 'air'
+L3_MSG = 'l3_message'
+CHOICE_MSG = 'choice_message'
+UNITS='units'
+WEDGE_LEVELS = 'wedge_levels'
+NOT_APPLICABLE = 'Not_Applicable'
+LEVEL_CHANNEL_CLUSTER = LEVEL_GROUP + [CHANNEL_COL.lower(),CLUSTER_CODE]
+STYLE_HIERARCHY = 'style_hierarchy'
+STYLE_TOT_QTY = 'style_total_qty'
+RCPT_QTY='rcpt_qty'
+RECPT_DOLLAR='rcpt_$'
+RECEIPT_UNIT='receipt_unit'
+PLAN_WEDGE_OPT_DROP_COLUMNS_NAME = ['plan_code', 'levels', 'drop_split', 'choice_flow', 'attribute_value']
+ASSORT_PLAN_WEDGE_OPT_DROP_TABLE='assort.plan_wedge_opt_drop'
+ASSORT_HIERARCHY_LIST='assort_hierarchy_list'
+FIXED_ATTR = 'fixed_attr'
+HISTORICAL_ATTR_COMBINATION = 'hist_attr_comb'
+L0_L1_L2_L3_CLUSTER = 'l0_l1_l2_l3_cluster'
+CHOICE_CLUSTER_TY = 'choice_cluster_ty'
+DEPTH_CLUSTER_TY = 'depth_cluster_ty'
+TOTAL_QTY_2_2 = 'total_qty_2_2'
+TOTAL_QTY_2_3 = 'total_qty_2_3'
+INC_VALUE = 'inc_value'
+TOTAL_SOLD_QTY = 'total_sold_qty'
+PEN_PRODUCT = 'pen_product'
+PEN = 'pen'
+PEN_L3 = 'pen_l3'
+L3_IDEAL = 'l3_ideal'
+RANGE_LOOKUP = 'range_lookup'
+PERCENTAGE_TYPE="percentage"
+DEPTH_MULTIPLIER = 'depth_multiplier'
+DEPTH_MULTIPLIER_L2 = 'depth_multiplier_l2'
+DEPTH_MULTIPLIER_L1 = 'depth_multiplier_l1'
+DEPTH_MULTIPLIER_L0 = 'depth_multiplier_l0'
+REQUEST_ID = 'request_id'
+WEDGE_REQUEST_CONSTRAINTS_TABLE = 'assort_smart.assort_wedge_request_constraints'
+WEDGE_RESPONSE_CALL_BACK_API = "assort-smart/wedge/wedge-response"
+GCS_OUTPUT_LINK = 'GCS_output_link'
+OPTI_SERVER_URL = 'OPTI_SERVER_URL'
+NEW_COLORS = 'new_colors'
+CARRYOVER_COLORS = 'carryover_colors'
+WEDGE_LEVEL = 'wedge_level'
+SKU_PRODUCTIVITY_TY = 'sku_productivity_ty'
+SKU_PRODUCTIVITY_LY = 'sku_productivity_ly'
+COLOR_COUNT_TY = 'color_count_ty'
+COLOR_COUNT_LY = 'color_count_ly'
+STYLE_DATE_STORE_COUNT = 'style_date_store_count'
+COLOR_ID = 'color_id'
+CHOICE_QTY = 'choice_qty'
+WEDGE_IMAGE_URL = "image_name_url"
+AND = ' and '
+
+ASSORT_HIERARCHY='assort_hierarchy'
+LEVEL_DROP='level_drop'
+LEVEL_FORM = 'l{count}_name'
+ATTRIBUTE='attribute'
+TOTAL_CHOICE_COUNT = 'total_choice_count'
+PLAN_L3_APS_ST_ID = 'plan_l3_aps_id'
+DEPTH_COlUMNS = 'depth_columns'
+CHOICE_COLUMNS = 'choice_columns'
+DEPTH_DATA = 'depth_data'
+CHOICE_DATA = 'choice_data'
+CHOICE_CNT = 'choice_count'
+DEPTH = 'depth'
+PLAN_CLS_DEPTH_ID = 'plan_cls_depth_id'
+CHOICE_LY = 'choice_ly'
+CHOICE_TY = 'choice_ty'
+CHOICE_COUNT = 'Choice Count'
+
+LEVELS_TYPE_DEPTH_CHOICE = {L3_NAME.lower(): ATTRIBUTE.lower()}
+
+DEPTH_CHOICE_LY_COLUMN_PROPERTIES = {
+        "is_frozen": False,
+        "is_hidden": False,
+        "is_editable": False,
+        "is_aggregated": False,
+        "type": 'float',
+        "footer": '',
+        "is_row_span": False,
+        "formatter": 'roundOff',
+        "is_searchable": False,
+        "order_of_display": 1,
+        "sub_headers": [],
+        "width": 125
+        }
+
+DEPTH_CHOICE_TY_COLUMN_PROPERTIES = {
+        "is_frozen": False,
+        "is_hidden": False,
+        "is_editable": True,
+        "is_aggregated": False,
+        "type": 'float',
+        "footer": '',
+        "is_row_span": False,
+        "formatter": 'roundOff',
+        "is_searchable": False,
+        "order_of_display": 2,
+        "sub_headers": [],
+        "width": 125
+        }
+
+SP_ASSORT_SEASON_DROP_LIST='"global".get_assort_season_drop_list'
+
+MESSAGE = "message"
+
+# getting screen configuration
+SP_GET_SCREEN_CONFIGURATION='"global".get_screen_configuration'
+BUDGET_OPTIMIZATION_LEVEL='budget_optimization_level'
+ASSORT_SMART_SCREEN_CONFIGURATION='assort_smart_screen_configuration'
+DISPLAY_LEVELS='display_levels'
+
+TOTAL_DEPTH='total_depth'
+TOTAL_STYLE_COUNT = 'total_style_count'
+
+
+PLAN_OPTIMIZATION_CONSTRAINT = 'plan_optimization_constraint'
+DATA_LEVEL = 'data_level'
+PLAN_WEDGE_OPT_CONS_ID = 'plan_wedge_opt_cons_id'
+INCREMENTS = 'increments'
+MAX = 'max'
+MIN = 'min'
+WEDGE = 'wedge_details'
+STYLE_LEVEL_WEDGE = 'style_level_wedge_details'
+
+FLOW_NAME = "flow_name"
+ATTRIBUTES = 'attributes'
+CORE = 'core'
+SCHOOL = 'school'
+UNIITS='units'
+TOTAL_FORECASTED_QTY = 'total_forecasted_qty'
+CLUSTERS = 'clusters'
+BOP='bop'
+PLAN_CHANNELS = "channel"
+
+
+REGX_MATCH_FOR_LEVELS_NAME = 'l[0-9]_name'
+WDG_METRIC_LEVEL_FORMAT = "array_agg(distinct levels->>'{level_name}') {level_name}"
+
+PLAN_WEDGE_DATA = 'plan_wedge_data'
+#attr review
+RUN_SIZE_CURVE_FLAG = 'run_size_curve_flag'
+CLUSTER_GRADE='cluster_grade'
+REG_WEEKS='reg_weeks'
+PRODUCT_NUM='product_no'
+STORE_COUNT_V2='store_count'
+STRUCT_FORMAT='struct_format'
+PEN_GRADE_LY='ly_pen_grade'
+PEN_GRADE_TY='ty_pen_grade'
+AVG_DEPTH_LY='avg_depth_ly'
+AVG_DEPTH_TY='avg_depth_ty'
+PENETRATION='penetration'
+RECEIPT_UNITS_LY='receipt_units_ly'
+RECEIPT_UNITS_TY='receipt_units_ty'
+ST_GRADE_LY='st_grade_ly'
+ST_GRADE_TY='st_grade_ty'
+APS_GRADE_LY='aps_grade_ly'
+APS_GRADE_TY='aps_grade_ty'
+AUR_GRADE_LY='aur_grade_ly'
+AUR_GRADE_TY='aur_grade_ty'
+MSRP_LY='msrp_ly'
+MSRP_TY='msrp_ty'
+L3_MSRP_TY='l3_msrp_ty'
+L3_RECEIPT_COST_TY='l3_rcpt_cost_ty'
+COGS_LY='cogs_ly'
+COGS_TY='cogs_ty'
+RECEIPT_RET_LY='receipt$_ly'
+RECEIPT_RET_TY='receipt$_ty'
+RECEIPT_COST_LY='rcpt_cost_ly'
+RECEIPT_COST_TY='rcpt_cost_ty'
+PENETRATION_NEW='penetration_new'
+CHOICE_COUNT_LY='cc_ly'
+CHOICE_COUNT_TY='cc_ty'
+STYLE_NUM_LY='style_no_ly'
+STYLE_NUM_TY='style_no_ty'
+DROP_VALUE='drop_value'
+DROP_END_DATE='drop_end_date'
+DROP_START_DATE='drop_start_date'
+FLOW_END_DATE='flow_end_date'
+FLOW_START_DATE='flow_start_date'
+CLUSTER_BUDGET='cluster_budget'
+ATTR_TABLE_ID='plan_finalize_grade_id'
+
+FLOW_PERC = 'flow_perc'
+TOTAL_CLUST_QTY = 'total_clust_qty'
+WEDGE_MESSAGE='Wedge table data not present'
+RECEIPT_MESSAGE='Receipt table data not present'
+APS_ST_MESSAGE='APS, ST data not present'
+ATTR_REVIEW_MESSAGE='Attr Review Results Uploaded'
+
+#
+# Wedge file upload constants start
+#
+
+MSRP_NAME = "MSRP"
+Total_Units = 'Total Units'
+STYLE_NAME_WDG = 'Style Name'
+COLOR_NAME_WDG = 'Color Name'
+CHOICE_NAME_WDG = 'Choice Name'
+STYLE_DES_WDG = 'Style Description'
+STYLE_NO_WDG = 'Style Number'
+FLOW_TO_NEXT_SEASON_WDG = 'Flow To Next Season'
+INITIAL_STYLE_ID = 'Initial Style ID'
+ACTUAL_MSRP_WDG = 'Actual MSRP'
+PARENT_STYLE_WDG = 'Parent Style'
+MERCHANT_PYRAMID_WDG = 'Merchant Pyramid'
+SUGGESTED_SIZE_RANGE_WDG = 'Suggested Size Range'
+COLOR_CODE_WDG = 'Color Code'
+SUB_CLASS_WDG = 'Sub Class'
+CARRY_OVER_PREV_SEASON_WDG = 'Carry Over From Previous Season'
+SIZE_WDG = 'Size'
+COST_WDG = 'Cost'
+PLAN_CODE_WDG = 'Plan Code'
+MERCH_BUSINESS_WDG = 'Merch Business Category'
+MERCH_DEPART_WDG = 'Merch Department'
+MERCH_CLASS_WDG = 'Merch Class'
+WEG_MERCHPYRAMID = "Merchpyramid"
+DROP_NAME_WDG = 'Drop Name'
+LOCK_CHOICE_WDG = 'Lock Choice'
+L0_NAME = 'l0_name'
+L1_NAME = 'l1_name'
+L2_NAME = 'l2_name'
+L3_NAME = 'l3_name'
+CATEGORY_TYPE = 'category'
+STYLE_NAME = 'style_name'
+COLOR_NAME = 'color_name'
+
+FILE_NAME = 'file_name'
+FLOW_TO_NEXT_SEASON = 'flow_to_next_season'
+LOCK_CHOICE = 'lock_choice'
+BLOCK_CHOICE = 'block_choice'
+
+PLM_PRY_FEBRIC = 'fabrication'
+ACTUAL_MSRP = 'actual_msrp'
+AIC_WDG = 'AIC'
+# AIC = 'aur'
+ST_WED = 'ST%'
+GWP_WDG = 'GWP'
+PILLAR_WDG = 'Pillar'
+GWP = 'gwp'
+PILLAR = 'pillar'
+STYLE_DESC = 'style_des'
+ARTICLE = 'article_number'
+STYLE_NUM = 'style_no'
+
+MARGIN = 'margin'
+COST = 'cost'
+
+PARENT_STYLE = 'parent_style'
+PARENT_STYLE_DESCRIPTION = 'parent_style_description'
+
+MERCHANT_PYRAMID = 'merchant_pyramid'
+SUGGESTED_SIZE_RANGE =  'suggested_size_range'
+COLOR_CODE = 'color_code'
+SUBCLASS = 'subclass'
+CARRY_OVER_PREV_SEASON = 'carry_over_prev_season'
+SIZE='size'
+SELLING_COLLECTION = 'selling_collection'
+FABRICATION = 'fabrication'
+SUB_CLASS = 'sub_class'
+PRODUCT_PRICE = 'product_price'
+
+WDG_FILE_MERGE_TARGET_COLS = ['plan_code', 'channel', 'l0_name', 'l1_name', 'l2_name', 'l3_name',
+                              'style_id',  'drop', 'flow', 'choice_name', 'choice_carryover_flag']
+
+WDG_FILE_OLD_WDG_COLS_CHOICE_LEVEL = ['plan_code', 'channel','sub_channel', 'l0_name', 'l1_name', 'l2_name', 'l3_name',
+                         'choice_name',  'drop', 'flow', 'cluster_qty', 'style_id',
+                         'cluster_store_count', 'cluster_code', 'total_qty', 'choice_carryover_flag']
+
+WDG_FILE_OLD_WDG_COLS_STYLE_LEVEL = ['plan_code', 'channel','sub_channel', 'l0_name', 'l1_name', 'l2_name', 'l3_name',
+                         'style_id',  'drop', 'flow', 'cluster_qty',
+                         'cluster_store_count', 'cluster_code', 'total_qty', 'style_carryover_flag']
+
+
+
+WDG_CHANNEL_SUB_HEADER = ['buy_units', 'sales_units', 'sales']
+
+CARRYOVER_NEW_COLOR = "carryover_new_color"
+CHOICE_LEVEL = 'choice_level'
+STYLE_LEVEL = 'style_level'
+
+COLS_TYPE_TO_CHANGE = {
+        MSRP_NAME: float,
+        COST_WDG: float,
+        Total_Units: int,
+        ACTUAL_MSRP_WDG: float,
+        AIC_WDG: float,
+        ST_WED: float
+}
+PRODUCT_PRICE_WDG = 'PRODUCT PRICE'
+
+
+DROP_SHIP_WDG = 'Drop Ship'
+DROPSHIP_CHOICE = 'dropship_choice'
+FLOW_WDG = 'Flow Name'
+
+
+INVALID_PLAN_CODE = 2
+VALID_PLAN_CODE = 1
+
+# wedge temp table name
+WDG_TEMP_TABLE_NAME = "plan_wedge_temp"
+REPLACE = 'replace'
+MULTI = 'multi'
+
+
+SOURCE_LEVELS = "source_levels"
+DATA_ATTRIBUTE_VALUE = 'attribute_value'
+
+
+OLD_TOTAL_QTY = 'old_total_qty'
+YES = 'Yes'
+WEDGE_UPDATE_DROP_COLUMNS = ['cluster_store_count', 'sub_channel', 'cluster_qty']
+
+LEVEL_CHANNEL_CHOICE_CLUSTER_DROP_FLOW = LEVEL_DROP_GROUP + [CHANNEL_COL.lower(), CHOICE_NAME, FLOW]
+LEVEL_CHOICE_TOTAL_QTY = LEVEL_CHANNEL_CHOICE_CLUSTER_DROP_FLOW + [TOTAL_QTY, OLD_TOTAL_QTY]
+
+LEVEL_CHOICE_TOTAL_QTY_CHOICE_LEVEL = LEVEL_CHANNEL_CHOICE_CLUSTER_DROP_FLOW + [TOTAL_QTY, OLD_TOTAL_QTY, 'choice_carryover_flag']
+LEVEL_CHOICE_TOTAL_QTY_STYLE_LEVEL = LEVEL_DROP_GROUP + [CHANNEL_COL.lower(), 'style_id', FLOW] + [TOTAL_QTY, OLD_TOTAL_QTY]
+
+LEVEL_CHANNEL_STYLE_CLUSTER_DROP_FLOW = LEVEL_DROP_GROUP + [CHANNEL_COL.lower(), 'style_id', FLOW]
+
+
+CHOICE = 'choice'
+NEW_QTY = 'new_qty'
+TOTAL_QTY_CLUSTER = 'tot_qty_cluster'
+CLUSTER_STORE_COUNT = 'cluster_store_count'
+CLUSTER_QTY = 'cluster_qty'
+CLUSTER_PEN = 'cluster_pen'
+SCALING_FACTOR = 'scaling_factor'
+
+TOTAL_CLUST_QTY_Y = 'total_clust_qty_y'
+TOTAL_CLUST_QTY_X = 'total_clust_qty_x'
+TOTAL_AFTER_NEW_CHOICE = 'tot_after_new_choices'
+
+UNDER_SCORE_PERCENTAGE_FLOW = '_percentage_flow'
+UNDER_SCORE_FLOW = 'flow_'
+
+SUBCAT = 'subcat'
+EXCEL_PLAN_CODE = 'Plan Code'
+DY_COLUMN_NAME='dy_column_name'
+RANGE_MULTIPLIER = 'range_multiplier'
+
+SP_GET_GENERIC_SCHEMA_MAPPING_LIST='"global".get_levels_with_display_name'
+ASSORT_HIERARCHY_LIST='assort_hierarchy_list'
+### plan_finalize_size_master table
+PLAN_FINALIZE_SIZE_ID='plan_finalize_size_id'
+STORES='stores'
+UNDER_SCORE_CHAR = '_'
+ATTRIBUTE_LIST = "attribute_list"
+FLOW_LIST = "flow_list"
+CLUST_GRADE = "_Grade"
+CLUST_LIST = "cluster_list"
+GRADE_LIST = "grade_list"
+PLAN_FINALIZE_GRADE_ID='plan_finalize_grade_id'
+DOUBLE_UNDER_SCORE_FLOW = '_flow_'
+## Store procedure for finalize buy 
+SP_GET_FINALIZE_SIZE_DETAILS = 'get_finalize_size_details'
+SP_GET_FINALIZE_GRADE_DETAILS_LIST = 'get_finalize_grade_details_list'
+SP_GET_FINALIZE_CLUSTER_LEVEL_LIST = 'get_cluster_and_level_list'
+SP_GET_FINALIZE_DROP_LIST = 'get_plan_drop_list'
+SP_GET_FINALIZE_ATTRIBUTE_GRADE_DETAILS_LIST = 'get_finalize_attribute_grade_details_list'
+REVIEW_BY_SIZE='review_by_size'
+STYLE_FAMILY = 'style_family'
+DROP_NAME = 'drop_name'
+
+
+#Omni Mapping
+
+OMINI_WEDGE = 'omni_mapping'
+GLOBAL_STYLE = "global_style"
+OVERALL_UNITS = "overall_buy_units"
+SOURCE_PLAN_CODE="source_plan_code"
+SOURCE_LEVELS = "source_levels"
+DESTINATION_PLAN_CODE = 'destination_plan_code'
+SHOW_DELETE_ICON = "show_delete_icon"
+PLAN_SUB_COLUMN_LIST = ['CHOICE', 'UNITS']
+
+OMNI_PLAN_CODE = 'omni_plan_code'
+DESTINATION_STYLE_ID ='destination_style_id'
+FORECASTED_UNITS = 'forecasted_units'
+PROJECTED_UNITS = 'projected_units'
+PLAN_CHOICE_NAME = 'plan_choice_name'
+BUY_UNITS = 'buy_units'
+FALSE_OMNI = 'false'
+GLOBAL_CHOICE_NAME = 'global_choice_name'
+STYLE_INDEX = 'style_index'
+LOCK_MAX_STYLE_INDEX = 'lock_max_style_index'
+CHOICE_INDEX = 'choice_index'
+LOCK_MAX_CHOICE_INDEX = 'lock_max_choice_index'
+GLOBAL_STYLE_QTY = 'global_style_qty'
+TRUE_OMNI = 'true'
+PLAN_OMNI_WEDGE_OPT_MASTER = 'assort_smart.plan_omni_wedge_opt_master'
+ATTRIBUTE_NAME_OMNI = 'attribute_name'
+REFRESH_FLAG = 'refresh_flag'
+OMNI_SUCCESS = 'Omnichannel created successfully'
+SP_UPDATE_PLAN_OMNI_WEDGE_OPT_MASTER='update_plan_omni_wedge_opt_master'
+ATTR_OMNI = 'attr'
+GLOBAL_STYLE_NUMBER_OMNI = 'global_style_number'
+MERGE_PLAN_SUCCESS = 'Merged plans successfully'
+HIERARCHY_SELECTION='hierarchy_selection'
+DATA_PULL_REFRESH_PLAN='data_pull'
+OMNI_WEDGE_CREATION='omni_wedge_creation'
+UPLOAD_TO_POSTGRES_OMNI='upload_to_postgres'
+DATA_PULL_MERGE_PLAN='data_pull_for_merge_plan'
+MERGE_OMNI_TO_PLAN='merge_omni_onto_plan'
+UPLOAD_POSTGRES_OMNI_TO_PLAN='upload_plan_wedge_data_to_postgres'
+PLAN_PRODUCT_ATTRIBUTES_TABLE = 'assort_smart.plan_product_attributes'
+UNIITS='units'
+TOTAL_UNIT='total_unit'
+PLAN_HIERARCHY_LEVEL = "hierarchy_level"
+PLAN_ATTRIBUTE_IS_FINAL = "is_final"
+CHANNEL_LEVEL_FOR_ROLLUP = 'channel'
+DESTINATION_CHOICE_ID='destination_choice_id'
+FORECASTED_QTY = 'forecasted_qty'
+STYLE_LAUNCH_DATE = 'style_launch_date'
+CHOICE_LAUNCH_DATE = 'choice_launch_date'
+SEASON_CODE = 'season_code'
+SEASON_MASTER_ID = 'season_master_id'
+SEASON_START_DATE = 'season_start_date'
+STORE_COUNT_V2='store_count'
+STYLE_CARRYOVER_FLAG ='style_carryover_flag'
+CHOICE_CARRYOVER_FLAG='choice_carryover_flag'
+PLAN_UPDATED_AT = "updated_at"
+IA_PLACEHOLDER_STYLE_ID = 'ia_placeholder_style_id'
+PLACEHOLDER_STYLE_OID = 'placeholder_style_oid'
+DB_IA_PLACEHOLDER_CHOICE_ID = 'ia_placeholder_choice_id'
+PLACEHOLDER_NAME = 'placeholder_name'
+PLACEHOLDER_DESCRIPTION = 'placeholder_description'
+COLORWAY_ID = 'colorway_id'
+COLORWAY_SEASON_ID = 'colorway_season_id'
+PRODUCT_SEASON_ID = 'product_season_id'
+PRODUCT_ID = 'product_id'
+RANK = 'rank'
+PLAN_BUY_UNITS='plan_buy_units'
+FACTORY_DOOR_COUNT = 'factory_door_count'
+FULLINE_DOOR_COUNT = 'full_line_door_count'
+SPECIALTY_DOOR_COUNT = 'specialty_door_count'
+FACTORY_LINE_RETAIL = 'Factory Line Retail'
+FULL_LINE_RETAIL = 'Full Line Retail'
+PLAN_ATTRIBUTE={'global_choice', 'global_style_number','overall_buy_units','price_band'}
+NEW = 'New'
+SOURCE_CHOICE_ID='source_choice_id'
+DATA_ATTRIBUTE_VALUE = 'attribute_value'
+DESTINATION_ATTRIBUTE_VALUE='destination_attribute_value'
+EMPTY_CHILD_PLAN_EXCEPTION = 'Child plan has no choice data'
+
+DATA_ATTRIBUTE_VALUE = 'attribute_value'
+GLOBAL_CHOICE='GLOBAL CHOICE'
+PRICE_BAND_COL = 'PRICE BAND'
+SOURCE_COLUMN_NAME='source_column_name'
+GLOBAL_STYLE_NUMBER='GLOBAL STYLE NUMBER'
+OVERALL_BUY_UNITS='OVERALL BUY UNITS'
+PARENT_STYLE_FORMAT =  'PARENT STYLE'
+STYLE_NAME_COL = 'STYLE NAME'
+STYLE_DESCRIPTION_HEADER='STYLE DESCRIPTION'
+COLOR_CODE_HEADER='COLOR CODE'
+COLOR_NAME_HEADER='COLOR NAME'
+SUGGESTED_SIZE_RANGE_HEADER='SUGGESTED SIZE RANGE'
+ACTUAL_MSRP_HEADER='ACTUAL MSRP'
+COLORWAY_SEASON_ID_HEADER='COLORWAY SEASON ID'
+NEW_VS_CARRYOVER_COL_HEADER='NEW VS CARRYOVER'
+MERCHPYRAMID_IP_COL ='MERCHPYRAMID_IP'
+PLACEHOLDER_NAME_COL='PLACEHOLDER NAME'
+PLACEHOLDER_DESCRIPTION_COL_HEADER='PLACEHOLDER DESCRIPTION'
+PLACEHOLDER_DESCRIPTION_COL='placeholder_description'
+METRIC='metric'
+SOURCE_CHOICE_ID='source_choice_id'
+COMPARE_PLAN_COL = 'plan'
+IS_FULL_DELETE='is_full_delete'
+OMNI_WEDGE_DATA='omni_wedge_data'
+OMNI_WEDGE_NEW_CARRYOVER = 'New vs carryover value should be unique for the following style'
+OMNI_WEDGE_PLACEHOLDER_DESCRIPTION = 'Placeholder Description value should be unique for the following style'
+VAL_CHOICE='valueCHOICE'
+VAL_QTY='valueQTY'
+PLAN_BUY_UNITS='plan_buy_units'
+
+PLAN_FINALIZE_GRADE_MASTER='plan_finalize_grade_master'
+PLAN_FINALIZE_GRADE_ATTRIBUTE='plan_finalize_grade_attribute'
+
+CORE_CHOICE_DATA_JSON_KEY='core_choice_data'
+CORE_CHOICE_ID='core_choice_id'
+ASSORT_CORE_CHOICE_TABLE ='all_door_choice'
+QUARTER='quarter'
+ALL_DOOR_CC = 'all_door_cc'
+IS_CORE_CHOICE_ENABLED = 'is_core_choice_enabled'
+Create_Success_Msg = 'Created successfully'
+YEAR_TYPE = 'year'
+CORE_CHOICE_MSG = 'One or more core choice creation failed due to duplicate entry'
+
+# all door core choice sp 
+SP_ALL_DOOR_CHOICE_LIST = "get_all_door_choice_list"
+ARTICLE = 'article_number'
+STYLE_NUM = 'style_no'
+SELLING_COLLECTION = 'selling_collection'
+FABRICATION = 'fabrication'
+CLUSTER_NAME = 'cluster_name'
+CLUSTER_QTY = 'cluster_qty'
+CHOICE_NAME = 'choice_name'
+CLUSTER_STORE_COUNT = 'cluster_store_count'
+QUANTITY = 'Quantity'
+INDEX = 'index'
+COST = 'cost'
+PEN = 'pen'
+
+# wedge file upload
+STR_TYPE_COL_GROUP = "str_type_col_group"
+COLS_REMOVE_SPLC_CHAR = "cols_remove_spcl_char"
+FILE_COLS_TO_RENAME="file_cols_to_rename"
+CSV_COLS_TO_COPY="csv_cols_to_copy"
+ATTR_COLS_GROUP="attribute_cols_group"
+
+WDG_UPLOAD_CONFIG = "wedge_upload_config"
+WDG_DOWNLOAD ="assort_wedge_download"
+
+DCS = 'dcs'
+
+PAGINATION = 'pagination'
+
+
+
+## Finalize
+# size
+SIZE_REVIEW_MESSAGE = 'Size Review Results Uploaded'
+RUN_SIZE_CURVE_FLAG = 'run_size_curve_flag' 
+PLAN_FINALIZE_SIZE_MASTER = 'plan_finalize_size_master'
+SCHOOL = 'school'
+STYLE_NUM = 'style_no'
+ARTICLE = 'article_number'
+NEW_L3_NAME = 'new_l3_name'
+CORE = 'core'
+DATA_ATTRIBUTE_VALUE = 'attribute_value'
+CHOICE_NAME = 'choice_name'
+CHOICE_FLOW = 'choice_flow'
+CHOICE = 'choice'
+STORES='stores'
+UNDER_SCORE_CHAR = '_'
+SIZE='size'
+CLASSLEVELDEMAND = 'classleveldemand'
+TRUEDEMAND = 'truedemand'
+DEMANDPROP = 'DemandProp'
+NEW_SIZE_DEMAND = 'new_size_demand'
+SIZE_DEMAND = 'size_demand'
+CLUSTER_DEMAND='cluster_size_demand'
+CLUSTER_SIZE_DEMAND='cluster_size_demand'
+CLUSTER_DEMANDPROP='cluster_demandprop'
+NEW_CLUST_QUANTITY = 'new_clust_qty'
+QUANTITY='Quantity'
+STYLE_DESC = 'style_des'
+ATTRIBUTES = 'attributes'
+SIZE_FLAG = 'size_flag'
+CLUST_TOT_QUANTITY = 'cluster_total_quantity'
+CHOICELEVELDEMAND = 'choiceleveldemand'
+ARTICLE_COL = 'article'
+SIZE_COL_PREFIX = 'size_'
+CHOICELEVELTRUEDEMAND ='choiceleveltruedemand'
+CURVE_FLAG_TYPE = 'curve_flag_type'
+
+PLAN_WDG_OPT_DROP = 'plan_wedge_opt_drop'
+PLAN_BUDGET_MASTER_DROP_TABLE = 'plan_budget_master_drop'
+PLAN_ATTRIBUTE={'global_choice', 'global_style_number','overall_buy_units','price_band'}
+DESTINATION_ATTRIBUTE_VALUE='destination_attribute_value'
+OMNI_ATTRIBUTE_VALUE_AGG = {
+                'buy_units':sum,
+                'projected_units':sum,
+                'forecasted_units':sum,
+                'moq':'first',
+                'pillar':'first',
+                'product_id':'first',
+                'colorway_id':'first',
+                'block_choice':'first',
+                'season_code':'first',
+                'season_master_id': 'first',
+                'product_season_id': 'first',
+                'style_launch_date':'first',
+                'choice_launch_date': 'first',
+                'colorway_season_id':'first',
+                'factory_door_count':'first',
+                'full_line_door_count':'first',
+                'specialty_door_count':'first',
+                'placeholder_style_oid' : 'first',
+                'ia_placeholder_style_id':'first',
+                'ia_placeholder_choice_id':'first'
+        }
+
+OMNI_ATTRIBUTE_VALUE_LIST =['source_choice_id', 'source_plan_code', 'buy_units', 'projected_units',
+       'forecasted_units', 'moq', 'pillar', 'product_id', 'colorway_id',
+       'block_choice', 'season_code', 'season_master_id', 'product_season_id',
+       'style_launch_date', 'choice_launch_date', 'colorway_season_id',
+       'factory_door_count', 'full_line_door_count', 'specialty_door_count',
+       'placeholder_style_oid', 'ia_placeholder_style_id',
+       'ia_placeholder_choice_id']   
+
+COLOR_ATTR_LIST ='{"color_code", "color_name", "colorway_name", "season_launch_date", "new_carry_over_season"}'
+PRODUCT_ATTR_LIST = '{"parent_style", "style_no", "style_des", "subclass", "suggested_size_range", "style_name", "size", "merchant_pyramid", "selling_collection", "actual_msrp", "msrp"}'
+SP_MAP_COLORWAY_DETAILS_INTO_WEDGE='map_colorway_details_into_wedge'
+OMNI_WEDGE_DATA='omni_wedge_data'
+SP_DELETE_PLAN_OMNI_WEDGE_OPT_MASTER='delete_plan_omni_wedge_opt_master'
+SP_DELETE_PLAN_OMNI_GLOBAL_CHOICE_WEDGE_OPT_MASTER='delete_plan_omni_wedge_global_choice_opt_master'
+SP_GET_GENERIC_SCHEMA_MAPPING='get_generic_schema_mapping'
+L3_NAME_LIST ='{"l3_name"}'
+
+#VB Flex extra keys
+FACTORY_DOOR_COUNT = 'factory_door_count'
+FULLINE_DOOR_COUNT = 'full_line_door_count'
+SPECIALTY_DOOR_COUNT = 'specialty_door_count'
+FACTORY_LINE_RETAIL = 'Factory Line Retail'
+FULL_LINE_RETAIL = 'Full Line Retail'
+
+SP_OMNI_MAPPING_DATA = 'get_omni_wedge_mapping_details'
+
+## sp for delete l3 levels 
+SP_PLAN_L3_OPT_L3_LEVEL_DELETE='plan_l3_opt_l3_level_delete'
+
+NO = 'No'
+# Plan master name column
+PLAN_NAME = 'name'
+CLUSTER_DEPTH_CHOICE_DATA='cluster_depth_choice_data'
+
+DICT = "dict"
+
+PLAN_OMNI_WEDGE_OPT_MASTER_TABLE='plan_omni_wedge_opt_master'
+
+OPTIMIZATION_LEVEL='optimization_level'
+L3_OPTIMIZATION='l3_optimization'
+SP_PLAN_L3_OPT_MASTER_OPTIMIZATION_LEVEL_UPDATE='plan_l3_opt_master_optimization_level_update'
+
+PLAN_CARRYOVER_STYLES_TABLE='plan_carryover_styles'
+PLAN_CARRYOVER_DATA='plan_carryover_data'
+ATTRIBUTES_KEY = 'attributes_key'
+
+STYLE_CARRYOVER_FLAG_COL_HEADER='STYLE CARRYOVER FLAG'
+CHOICE_CARRYOVER_FLAG_HEADER='CHOICE CARRYOVER FLAG'
